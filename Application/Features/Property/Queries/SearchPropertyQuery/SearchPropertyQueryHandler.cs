@@ -33,7 +33,7 @@ namespace Application.Features.Property.Queries.SearchPropertyQuery
             }
 
             if (!propertyQueryResponse.Success) return propertyQueryResponse;
-            var propertyResponse = await _propertyRepository.GetByTextAsync(request.SearchKey, request.Limit);
+            var propertyResponse = await _propertyRepository.GetByTextAsync(request.SearchKey,request.MarketType, request.Limit);
 
             var locationDto = _mapper.Map<List<SearchProperyDto>>(propertyResponse);
 

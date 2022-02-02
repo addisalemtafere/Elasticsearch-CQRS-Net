@@ -5,6 +5,7 @@ namespace Domain.Entity
     public class Property : Message
     {
         public int propertyID { get; set; }
+        public int mgmtID { get; set; }
         public string name { get; set; }
         public string formerName { get; set; }
         public string streetAddress { get; set; }
