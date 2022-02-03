@@ -13,63 +13,21 @@ namespace Infrastructure.Persistance.Repository
         {
         }
 
-        public async Task<IEnumerable<Property>> GetByTextAsync(string text, IEnumerable<string> marketKey, int limit)
+        public async Task<IEnumerable<Property>> SearchPropertyAsync(string text, IEnumerable<string> marketKey, int limit)
         {
             var mgmtIndexName = CommonConfigurationsHelper.GetSettings().ElasticMgmtIndex;
-            var nameList = new[] { "Abilene", "Abilene" };
 
 
-            QueryContainer query = new QueryContainerDescriptor<Property>();
+            var searchDescriptor = new SearchDescriptor<Property>();
+            var queryContainer = new QueryContainer();
+            var queryContainerDescriptor = new QueryContainerDescriptor<Property>();
 
-            if (!string.IsNullOrEmpty(text))
-            {
-                query = query && new QueryContainerDescriptor<Property>().MultiMatch(
-                                            m => m.Fields(fs => fs.Field(f => f.city)
-                                                                  .Field(f => f.state)
-                                                                  .Field(f => f.streetAddress))
-                                            .Fuzziness(Fuzziness.Auto)
-                                            .Lenient()
-                                            .Query(text));
-            }
-            //if (marketKey.Any())
-            //{
-            //    query = query && new QueryContainerDescriptor<Property>()
-            //        .Bool(bq => bq.Filter(fq => fq.Terms(t => t.Field(f => f.market).Terms(new[] { "Abilene", "" }) )));
-
-
-            //}
-            //var filters = new List<Func<QueryContainerDescriptor<Property>, QueryContainer>>();
-            //if (nameList.Any())
-            //{
-            //    //filters.Add(fq => fq.Terms(t => t.Field(f => f.market).Terms("San Francisco")));
-
-
-            //}
-            //var tagsFilter = marketKey.Select(value =>
-            //{
-            //    Func<QueryContainerDescriptor<Property>, QueryContainer> tagFilter = filter => filter
-            //        .Term(term => term
-            //            .Field(field => field.market)
-            //            .Value(value));
-
-            //    return tagFilter;
-            //});
-
-            //var result = _context.GetClient().Search<Property>(s => s
-            //   .Index(new[] { IndexName, mgmtIndexName }).
-            //   Query(_=>query));
-
-
-            var sd = new SearchDescriptor<Property>();
-            var qc = new QueryContainer();
-            var qd = new QueryContainerDescriptor<Property>();
-
-            sd.Size(limit);
-            sd.Index(new[] { IndexName, mgmtIndexName });
+            searchDescriptor.Size(limit);
+            searchDescriptor.Index(new[] { IndexName, mgmtIndexName });
 
             if (!string.IsNullOrEmpty(text))
             {
-                qc = qd.MultiMatch(m => m.Fields(fs => fs.Field(f => f.city)
+                queryContainer = queryContainerDescriptor.MultiMatch(m => m.Fields(fs => fs.Field(f => f.city)
                       .Field(f => f.state)
                       .Field(f => f.streetAddress))
                         .Fuzziness(Fuzziness.Auto)
@@ -80,17 +38,22 @@ namespace Infrastructure.Persistance.Repository
 
             if (marketKey.Any())
             {
-                qc = qd.Terms(m => m
-                    .Field(f => f.market)
-                    .Terms(marketKey.ToArray()));
+                //queryContainer = queryContainer && queryContainerDescriptor.Terms(m => m
+                //    .Field(f => f.market)
+                //    .Terms(marketKey.ToArray())); ;
+
+                foreach (string str in marketKey)
+                {
+                    queryContainer = queryContainer && new QueryContainerDescriptor<Property>().Term(m => m.market, str.ToLower());
+
+                }
             }
 
 
 
-            sd.Query(q => q
-                 .Bool(b => b.Must(qc)));
-
-            var result = _context.GetClient().Search<Property>(s => s = sd);
+            searchDescriptor.Query(q => q
+                 .Bool(b => b.Must(queryContainer)));
+            var result = _context.GetClient().Search<Property>(s => searchDescriptor);
 
             return result.Documents;
         }
