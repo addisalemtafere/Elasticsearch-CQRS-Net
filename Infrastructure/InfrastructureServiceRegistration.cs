@@ -17,7 +17,6 @@ namespace Infrastructure
             //elasticsearch
             services.AddTransient<IElasticContextProvider, ElasticContextProvider>();
             services.AddSingleton<IElasticConfigurationService, ElasticConfigurationService>();
-
             CommonConfigurationsHelper.CommonConfig(configuration);
 
             return services;

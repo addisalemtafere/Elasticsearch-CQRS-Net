@@ -1,3 +1,4 @@
+using API.Middleware;
 using Application;
 using Infrastructure;
 using Infrastructure.Configuration.ElasticsearchConfiguration;
@@ -36,7 +37,7 @@ try
     {
         await SeedData.SeedAsync(service);
     }
-
+    app.UseCustomExceptionHandler();
     app.UseHttpsRedirection();
 
     app.UseAuthorization();
